@@ -153,6 +153,7 @@ enum Bucket {
 
 #[derive(Deserialize, Serialize, Debug)]
 pub struct Line {
+    upcdn: String,
     os: Uploader,
     probe_url: String,
     query: String,
@@ -194,20 +195,34 @@ impl Line {
                 response.text().await?
             )));
         }
+
+
+        let mut json_response: serde_json::Value = response.json().await?;  // Parse JSON response
+
+        if let Uploader::Upos = self.os {
+            // Check self.upcdn value and modify endpoint accordingly
+            match self.upcdn.as_str()  {
+                "ws" => json_response["endpoint"] = serde_json::to_value("//upos-cs-upcdnws.bilivideo.com").unwrap(),
+                "qn" => json_response["endpoint"] = serde_json::to_value("//upos-cs-upcdnqn.bilivideo.com").unwrap(),
+                "bldsa" => json_response["endpoint"] = serde_json::to_value("//upos-cs-upcdnbldsa.bilivideo.com").unwrap(),
+                _ => (),  // No modification for other cases
+            }
+        }
+        
         match self.os {
             Uploader::Upos => Ok(Parcel {
-                line: Bucket::Upos(response.json().await?),
+                line: Bucket::Upos(serde_json::from_value::<upos::Bucket>(json_response)?),
                 video_file,
             }),
             Uploader::Kodo => Ok(Parcel {
-                line: Bucket::Kodo(response.json().await?),
+                line: Bucket::Kodo(serde_json::from_value::<kodo::Bucket>(json_response)?),
                 video_file,
             }),
             Uploader::Bos | Uploader::Gcs => {
                 panic!("unsupported")
             }
             Uploader::Cos => Ok(Parcel {
-                line: Bucket::Cos(response.json().await?, self.probe_url == "internal"),
+                line: Bucket::Cos(serde_json::from_value::<cos::Bucket>(json_response)?, self.probe_url == "internal"),
                 video_file,
             }),
         }
@@ -218,7 +233,7 @@ impl Default for Line {
     fn default() -> Self {
         Line {
             os: Uploader::Upos,
-            probe_url: "//upos-sz-upcdnbda2.bilivideo.com/OK".to_string(),
+            probe_url: "//upos-cs-upcdnbda2.bilivideo.com/OK".to_string(),
             query: "upcdn=bda2&probe_version=20211012".to_string(),
             cost: u128::MAX,
         }
@@ -227,6 +242,7 @@ impl Default for Line {
 
 pub fn kodo() -> Line {
     Line {
+        upcdn: "kodo".into(),
         os: Uploader::Kodo,
         query: "bucket=bvcupcdnkodobm&probe_version=20211012".into(),
         probe_url: "//up-na0.qbox.me/crossdomain.xml".into(),
@@ -236,27 +252,30 @@ pub fn kodo() -> Line {
 
 pub fn bda2() -> Line {
     Line {
+        upcdn: "bda2".into(),
         os: Uploader::Upos,
         query: "upcdn=bda2&probe_version=20211012".into(),
-        probe_url: "//upos-sz-upcdnbda2.bilivideo.com/OK".into(),
+        probe_url: "//upos-cs-upcdnbda2.bilivideo.com/OK".into(),
         cost: 0,
     }
 }
 
 pub fn ws() -> Line {
     Line {
+        upcdn: "ws".into(),
         os: Uploader::Upos,
         query: "upcdn=ws&probe_version=20211012".into(),
-        probe_url: "//upos-sz-upcdnws.bilivideo.com/OK".into(),
+        probe_url: "//upos-cs-upcdnws.bilivideo.com/OK".into(),
         cost: 0,
     }
 }
 
 pub fn qn() -> Line {
     Line {
+        upcdn: "qn".into(),
         os: Uploader::Upos,
         query: "upcdn=qn&probe_version=20211012".into(),
-        probe_url: "//upos-sz-upcdnqn.bilivideo.com/OK".into(),
+        probe_url: "//upos-cs-upcdnqn.bilivideo.com/OK".into(),
         cost: 0,
     }
 }

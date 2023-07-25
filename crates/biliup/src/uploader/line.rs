@@ -232,6 +232,7 @@ impl Line {
 impl Default for Line {
     fn default() -> Self {
         Line {
+            upcdn: "auto".into(),
             os: Uploader::Upos,
             probe_url: "//upos-cs-upcdnbda2.bilivideo.com/OK".to_string(),
             query: "upcdn=bda2&probe_version=20211012".to_string(),
@@ -282,6 +283,7 @@ pub fn qn() -> Line {
 
 pub fn cos() -> Line {
     Line {
+        upcdn: "cos".into(),
         os: Uploader::Cos,
         query: "&probe_version=20211012&r=cos&profile=ugcupos%2Fbupfetch&ssl=0&version=2.10.4.0&build=2100400&webVersion=2.0.0".into(),
         probe_url: "".into(),
@@ -291,6 +293,7 @@ pub fn cos() -> Line {
 
 pub fn cos_internal() -> Line {
     Line {
+        upcdn: "cos_internal".into(),
         os: Uploader::Cos,
         query: "".into(),
         probe_url: "internal".into(),
@@ -300,6 +303,7 @@ pub fn cos_internal() -> Line {
 
 pub fn bldsa() -> Line {
     Line {
+        upcdn: "bldsa".into(),
         os: Uploader::Upos,
         query: "upcdn=bldsa&probe_version=20211012".into(),
         probe_url: "//upos-cs-upcdnbldsa.bilivideo.com/OK".into(),
